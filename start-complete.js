@@ -338,23 +338,45 @@ function calculatePricing(parseResult) {
     const finalPrice = basePrice + additionalFees;
     
     // 生成报价
-    quotes.push({
-        channelName: '美国空派特快专线',
-        serviceType: 'air',
-        transitTime: '6-12天',
-        chargeableWeight: chargeableWeight,
-        actualWeight: actualWeight,
-        volumeWeight: volumeWeight,
-        basePrice: basePrice,
-        additionalFees: additionalFees,
-        totalPrice: finalPrice,
-        pricePerKg: basePricePerKg,
-        isCustomPrice: !!parseResult.customPrice,
-        feeDetails: feeDetails,
-        destinationZone: '美东',
-        isOversized: isOversized,
-        girth: girth
-    });
+    if (parseResult.customPrice) {
+        // 自定义单价时，显示通用报价
+        quotes.push({
+            channelName: '自定义单价报价',
+            serviceType: 'custom',
+            transitTime: '根据实际安排',
+            chargeableWeight: chargeableWeight,
+            actualWeight: actualWeight,
+            volumeWeight: volumeWeight,
+            basePrice: basePrice,
+            additionalFees: additionalFees,
+            totalPrice: finalPrice,
+            pricePerKg: basePricePerKg,
+            isCustomPrice: true,
+            feeDetails: feeDetails,
+            destinationZone: '美东',
+            isOversized: isOversized,
+            girth: girth
+        });
+    } else {
+        // 标准报价时，显示具体渠道
+        quotes.push({
+            channelName: '美国空派特快专线',
+            serviceType: 'air',
+            transitTime: '6-12天',
+            chargeableWeight: chargeableWeight,
+            actualWeight: actualWeight,
+            volumeWeight: volumeWeight,
+            basePrice: basePrice,
+            additionalFees: additionalFees,
+            totalPrice: finalPrice,
+            pricePerKg: basePricePerKg,
+            isCustomPrice: false,
+            feeDetails: feeDetails,
+            destinationZone: '美东',
+            isOversized: isOversized,
+            girth: girth
+        });
+    }
     
     return quotes;
 }
@@ -364,8 +386,17 @@ function formatQuotes(quotes) {
     
     quotes.forEach((quote, index) => {
         result += `${index + 1}. ${quote.channelName}\n`;
-        result += `   🚛 运输方式: ✈️ ${quote.serviceType}\n`;
-        result += `   ⏱️  运输时效: ${quote.transitTime}\n`;
+        
+        if (quote.isCustomPrice) {
+            // 自定义单价显示
+            result += `   🚛 运输方式: 📦 自定义报价\n`;
+            result += `   ⏱️  运输时效: 根据实际安排\n`;
+        } else {
+            // 标准报价显示
+            result += `   🚛 运输方式: ✈️ ${quote.serviceType}\n`;
+            result += `   ⏱️  运输时效: ${quote.transitTime}\n`;
+        }
+        
         result += `   ⚖️  计费重量: ${quote.chargeableWeight.toFixed(6)}kg\n`;
         result += `   📦 实际重量: ${quote.actualWeight}kg\n`;
         result += `   📏 体积重量: ${quote.volumeWeight.toFixed(6)}kg\n`;
@@ -382,7 +413,7 @@ function formatQuotes(quotes) {
         if (quote.isCustomPrice) {
             result += `   📈 单价: ¥${quote.pricePerKg.toFixed(2)}/kg（$${(quote.pricePerKg * 0.14).toFixed(2)}/kg）\n`;
         } else {
-            const calculatedPricePerKg = quote.totalPrice / quote.chargeableWeight;
+            const calculatedPricePerKg = quote.chargeableWeight > 0 ? quote.totalPrice / quote.chargeableWeight : 0;
             result += `   📈 单价: ¥${calculatedPricePerKg.toFixed(2)}/kg（$${(calculatedPricePerKg * 0.14).toFixed(2)}/kg）\n`;
         }
         
