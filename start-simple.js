@@ -22,13 +22,9 @@ app.get('/health', (req, res) => {
     });
 });
 
-// 根路径
+// 根路径 - 直接提供前端页面
 app.get('/', (req, res) => {
-    res.status(200).json({ 
-        status: 'ok',
-        message: '国际物流报价系统运行正常',
-        version: '1.0.0'
-    });
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 // 文本解析接口（简化版）
@@ -109,6 +105,7 @@ app.post('/api/standard-quote', (req, res) => {
 });
 
 // 静态文件服务
+app.use(express.static('public'));
 app.use('/public', express.static('public'));
 
 // 启动服务器
