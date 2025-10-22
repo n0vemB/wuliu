@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 const API_BASE = 'http://localhost:3000/api';
-const testQuery = "美国，Kansas，Topeka，4536 Southwest Auburn Road，66610，25*25*25，20kg";
+const testQuery = "10748 Northwest 12th Manor,Plantation,Florida,United States,33322，62.6*62.6*34.2，14kg，单价18";
 
 async function testAllQuoteMethods() {
     console.log('🧪 测试查询:', testQuery);

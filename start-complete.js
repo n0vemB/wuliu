@@ -397,8 +397,16 @@ function formatQuotes(quotes) {
             result += `   ⏱️  运输时效: ${quote.transitTime}\n`;
         }
         
-        result += `   📏 体积重量: ${quote.volumeWeight.toFixed(6)}kg\n`;
+        result += `   📏 体积重量: ${quote.volumeWeight.toFixed(2)}kg\n`;
         result += `   📦 实际重量: ${quote.actualWeight}kg\n`;
+        
+        // 围长状态显示在重量下方
+        if (quote.isOversized) {
+            result += `   ⚠️  围长状态: 超围 (围长${quote.girth.toFixed(2)}CM>266CM)\n`;
+        } else {
+            result += `   ✅ 围长状态: 正常 (围长${quote.girth.toFixed(2)}CM≤266CM)\n`;
+        }
+        
         result += `   💰 基础运费: ¥${quote.basePrice.toFixed(2)}（$${(quote.basePrice * 0.14).toFixed(2)}）${quote.isCustomPrice ? ' (自定义单价)' : ''}\n`;
         
         if (quote.additionalFees > 0) {
@@ -406,9 +414,7 @@ function formatQuotes(quotes) {
             result += `   📝 费用明细: ${quote.feeDetails.join(', ')}\n`;
         }
         
-        result += `   💵 总价: ¥${quote.totalPrice.toFixed(2)}（$${(quote.totalPrice * 0.14).toFixed(2)}）\n`;
-        
-        // 显示单价（自定义单价或计算单价）
+        // 显示单价（自定义单价或计算单价）- 放在总价上面
         if (quote.isCustomPrice) {
             result += `   📈 单价: ¥${quote.pricePerKg.toFixed(2)}/kg（$${(quote.pricePerKg * 0.14).toFixed(2)}/kg）\n`;
         } else {
@@ -416,17 +422,13 @@ function formatQuotes(quotes) {
             result += `   📈 单价: ¥${calculatedPricePerKg.toFixed(2)}/kg（$${(calculatedPricePerKg * 0.14).toFixed(2)}/kg）\n`;
         }
         
+        result += `   💵 总价: ¥${quote.totalPrice.toFixed(2)}（$${(quote.totalPrice * 0.14).toFixed(2)}）\n`;
+        
         // 添加合计显示（总价*4）
         const totalAmount = quote.totalPrice * 4;
         result += `   💵 合计：总价*4: ¥${totalAmount.toFixed(2)}（$${(totalAmount * 0.14).toFixed(2)}）\n`;
         
         result += `   🎯 目的地分区: ${quote.destinationZone}\n`;
-        
-        if (quote.isOversized) {
-            result += `   ⚠️  围长状态: 超围 (围长${quote.girth}CM>266CM)\n`;
-        } else {
-            result += `   ✅ 围长状态: 正常 (围长${quote.girth}CM≤266CM)\n`;
-        }
         
         result += '\n';
     });

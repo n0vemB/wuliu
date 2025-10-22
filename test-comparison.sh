@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 测试查询: US，Kansas，Topeka，4536 Southwest Auburn Road，Postal Code 66610，25*25*25，20kg"
+echo "🧪 测试查询: 10748 Northwest 12th Manor,Plantation,Florida,United States,33322，62.6*62.6*34.2，14kg，单价18"
 echo "================================================================================"
 
 echo ""
@@ -8,7 +8,7 @@ echo "📋 标准化报价结果:"
 echo "-------------------"
 curl -s -X POST http://localhost:3000/api/standard-quote \
   -H "Content-Type: application/json" \
-  -d '{"message": "US，Kansas，Topeka，4536 Southwest Auburn Road，Postal Code 66610，25*25*25，20kg"}' \
+  -d '{"message": "10748 Northwest 12th Manor,Plantation,Florida,United States,33322，62.6*62.6*34.2，14kg，单价18"}' \
   | jq -r '.data.quotes[]? | "• \(.channelName) (\(.channelType)) - ¥\(.totalPrice) (¥\(.pricePerKg)/kg) - \(.transitTime)"'
 
 echo ""
@@ -16,7 +16,7 @@ echo "📊 传统报价结果:"
 echo "-------------------"
 curl -s -X POST http://localhost:3000/api/chat-quote \
   -H "Content-Type: application/json" \
-  -d '{"message": "US，Kansas，Topeka，4536 Southwest Auburn Road，Postal Code 66610，25*25*25，20kg"}' \
+  -d '{"message": "10748 Northwest 12th Manor,Plantation,Florida,United States,33322，62.6*62.6*34.2，14kg，单价18"}' \
   | jq -r '.data.quotes[]? | "• \(.channelName) (\(.channelType)) - ¥\(.totalPrice) (¥\(.pricePerKg)/kg)"'
 
 echo ""
@@ -28,12 +28,12 @@ echo "--------------------------------------------------------------------------
 # 获取标准化报价数据
 STANDARD_DATA=$(curl -s -X POST http://localhost:3000/api/standard-quote \
   -H "Content-Type: application/json" \
-  -d '{"message": "US，Kansas，Topeka，4536 Southwest Auburn Road，Postal Code 66610，25*25*25，20kg"}')
+  -d '{"message": "10748 Northwest 12th Manor,Plantation,Florida,United States,33322，62.6*62.6*34.2，14kg，单价18"}')
 
 # 获取传统报价数据
 TRADITIONAL_DATA=$(curl -s -X POST http://localhost:3000/api/chat-quote \
   -H "Content-Type: application/json" \
-  -d '{"message": "US，Kansas，Topeka，4536 Southwest Auburn Road，Postal Code 66610，25*25*25，20kg"}')
+  -d '{"message": "10748 Northwest 12th Manor,Plantation,Florida,United States,33322，62.6*62.6*34.2，14kg，单价18"}')
 
 # 提取标准化报价的海运和空运价格
 STANDARD_SEA=$(echo "$STANDARD_DATA" | jq -r '.data.quotes[]? | select(.channelType == "sea") | "¥\(.totalPrice)/¥\(.pricePerKg)kg"' | head -1)
