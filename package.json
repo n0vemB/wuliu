@@ -4,8 +4,9 @@
   "description": "国际物流报价系统",
   "main": "app.js",
   "scripts": {
-    "start": "node start.js",
+    "start": "node start-simple.js",
     "start:full": "node app.js",
+    "start:original": "node start.js",
     "dev": "nodemon app.js",
     "init-db": "node scripts/init-database.js",
     "import-excel": "node scripts/import-excel.js"
