@@ -278,7 +278,8 @@
         let standardCount = 0;
         let successCount = 0;
         
-        const API_BASE = 'http://localhost:3000/api';
+        // 自动检测API基础URL
+        const API_BASE = window.location.origin + '/api';
         
         function useExample(element) {
             document.getElementById('chatInput').value = element.textContent.trim();
