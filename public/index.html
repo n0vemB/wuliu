@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国际物流报价系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .result-content {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e1e5e9;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .examples {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .examples h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .example-item {
+            background: white;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .example-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .stat-item {
+            flex: 1;
+            padding: 15px;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚢 国际物流报价系统</h1>
+            <p>智能解析用户输入，快速获取物流报价</p>
+        </div>
+        
+        <div class="content">
+            <div class="examples">
+                <h4>📝 输入示例（点击使用）：</h4>
+                <div class="example-item" onclick="useExample(this)">
+                    US，Kansas，Topeka，4536 Southwest Auburn Road，Postal Code 66610，25*25*25，20kg
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <h3>💬 智能对话报价</h3>
+                <div class="input-group">
+                    <label for="chatInput">请描述您的物流需求：</label>
+                    <textarea id="chatInput" placeholder="例如：美国洛杉矶 90210 25*25*18 6.6KG 联邦快递"></textarea>
+                </div>
+                <button class="btn" onclick="getStandardQuote()">📋 标准化报价</button>
+                <button class="btn" onclick="getAIQuote()">🤖 AI智能报价</button>
+                <button class="btn" onclick="parseText()">🔍 仅解析文本</button>
+                <button class="btn" onclick="validateAddress()">📍 地址验证</button>
+                <button class="btn" onclick="clearAll()">🗑️ 清空</button>
+            </div>
+            
+            <div id="resultSection" class="result-section" style="display: none;">
+                <h3>📊 结果</h3>
+                <div id="resultContent" class="result-content"></div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="parseCount">0</div>
+                    <div class="stat-label">解析次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="quoteCount">0</div>
+                    <div class="stat-label">报价次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="standardCount">0</div>
+                    <div class="stat-label">标准报价</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="aiCount">0</div>
+                    <div class="stat-label">AI报价</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="successRate">0%</div>
+                    <div class="stat-label">成功率</div>
+                </div>
+            </div>
+
+            <div id="aiStatus" class="ai-status" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
+                <h4>🤖 AI服务状态</h4>
+                <div id="aiStatusContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let parseCount = 0;
+        let quoteCount = 0;
+        let aiCount = 0;
+        let standardCount = 0;
+        let successCount = 0;
+        
+        const API_BASE = 'http://localhost:3000/api';
+        
+        function useExample(element) {
+            document.getElementById('chatInput').value = element.textContent.trim();
+        }
+        
+        function showResult(content, isError = false) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultSection.style.display = 'block';
+            resultContent.innerHTML = isError ? 
+                `<div class="error">${content}</div>` : 
+                content;
+            
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showLoading() {
+            showResult('<div class="loading">⏳ 处理中...</div>');
+        }
+        
+        function updateStats() {
+            document.getElementById('parseCount').textContent = parseCount;
+            document.getElementById('quoteCount').textContent = quoteCount;
+            document.getElementById('standardCount').textContent = standardCount;
+            document.getElementById('aiCount').textContent = aiCount;
+            const rate = parseCount > 0 ? Math.round((successCount / parseCount) * 100) : 0;
+            document.getElementById('successRate').textContent = rate + '%';
+        }
+        
+        async function parseText() {
+            const input = document.getElementById('chatInput').value.trim();
+            if (!input) {
+                showResult('请输入要解析的文本', true);
+                return;
+            }
+            
+            showLoading();
+            parseCount++;
+            
+            try {
+                const response = await fetch(`${API_BASE}/parse`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: input })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    successCount++;
+                    showResult(`<div class="success">✅ 解析成功</div>\n${data.data.formatted}`);
+                } else {
+                    showResult(`解析失败: ${data.message}`, true);
+                }
+            } catch (error) {
+                showResult(`网络错误: ${error.message}`, true);
+            }
+            
+            updateStats();
+        }
+        
+        // 传统报价功能已移除
+        
+        async function getStandardQuote() {
+            const input = document.getElementById('chatInput').value.trim();
+            if (!input) {
+                showResult('请输入查询信息', true);
+                return;
+            }
+
+            showLoading();
+            parseCount++;
+            quoteCount++;
+            standardCount++;
+
+            try {
+                const response = await fetch(`${API_BASE}/standard-quote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: input })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successCount++;
+                    const result = data.data;
+
+                    if (result.type === 'parse_error') {
+                        showResult(`<div class="error">❌ ${result.message}</div>`);
+                    } else {
+                        showResult(`<div class="success">✅ 标准化报价成功 - 找到${result.count}个渠道</div>\n${result.message}`);
+                    }
+                } else {
+                    showResult(`标准化报价失败: ${data.message}`, true);
+                }
+            } catch (error) {
+                showResult(`网络错误: ${error.message}`, true);
+            }
+
+            updateStats();
+        }
+
+        async function getAIQuote() {
+            const input = document.getElementById('chatInput').value.trim();
+            if (!input) {
+                showResult('请输入查询信息', true);
+                return;
+            }
+
+            showLoading();
+            parseCount++;
+            quoteCount++;
+            aiCount++;
+
+            try {
+                const response = await fetch(`${API_BASE}/ai-quote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: input })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successCount++;
+                    const result = data.data;
+
+                    let resultHtml = '';
+                    if (result.type === 'ai_unavailable') {
+                        resultHtml = `<div class="error">🤖 ${result.message}</div>`;
+                        if (result.fallbackAvailable) {
+                            resultHtml += '<button class="btn" onclick="getChatQuote()" style="margin-top: 10px;">使用传统报价</button>';
+                        }
+                    } else if (result.type === 'ai_quote_result') {
+                        resultHtml = `<div class="success">✅ AI报价成功 (${result.provider.toUpperCase()}) - 找到${result.count}个渠道</div>\n${result.message}`;
+                    } else {
+                        resultHtml = result.message;
+                    }
+
+                    showResult(resultHtml);
+                } else {
+                    showResult(`AI报价失败: ${data.message}`, true);
+                }
+            } catch (error) {
+                showResult(`网络错误: ${error.message}`, true);
+            }
+
+            updateStats();
+        }
+
+        async function validateAddress() {
+            const input = document.getElementById('chatInput').value.trim();
+            if (!input) {
+                showResult('请输入地址信息进行验证', true);
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // 先解析地址信息
+                const parseResponse = await fetch(`${API_BASE}/parse`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: input })
+                });
+
+                const parseData = await parseResponse.json();
+
+                if (!parseData.success || !parseData.data.parsed.country) {
+                    showResult('无法从输入中提取地址信息，请确保包含国家、地址等信息', true);
+                    return;
+                }
+
+                const parsed = parseData.data.parsed;
+
+                // 验证地址
+                const validateResponse = await fetch(`${API_BASE}/validate-address`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        address: parsed.address || '',
+                        country: parsed.country || '',
+                        postalCode: parsed.postalCode || ''
+                    })
+                });
+
+                const validateData = await validateResponse.json();
+
+                if (validateData.success) {
+                    const validation = validateData.data;
+                    let resultHtml = `<div class="success">📍 地址验证结果</div>\n`;
+                    resultHtml += `原始地址: ${parsed.address || '未提供'}\n`;
+                    resultHtml += `国家: ${parsed.country}\n`;
+                    resultHtml += `邮编: ${parsed.postalCode || '未提供'}\n\n`;
+                    resultHtml += `验证状态: ${validation.isValid ? '✅ 有效' : '❌ 无效'}\n`;
+                    if (validation.standardizedAddress) {
+                        resultHtml += `标准化地址: ${validation.standardizedAddress}\n`;
+                    }
+                    resultHtml += `偏远地区: ${validation.isRemote ? '是' : '否'}\n`;
+                    resultHtml += `置信度: ${Math.round((validation.confidence || 0) * 100)}%\n`;
+
+                    if (validation.suggestions && validation.suggestions.length > 0) {
+                        resultHtml += `\n建议:\n${validation.suggestions.join('\n')}`;
+                    }
+
+                    showResult(resultHtml);
+                } else {
+                    showResult(`地址验证失败: ${validateData.message}`, true);
+                }
+            } catch (error) {
+                showResult(`地址验证错误: ${error.message}`, true);
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('chatInput').value = '';
+            document.getElementById('resultSection').style.display = 'none';
+        }
+        
+        // 检查服务器状态
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE.replace('/api', '')}/health`);
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    console.log('✅ 服务器连接正常');
+                    // 检查AI服务状态
+                    await checkAIStatus();
+                } else {
+                    console.warn('⚠️ 服务器状态异常');
+                }
+            } catch (error) {
+                console.error('❌ 无法连接到服务器:', error);
+                showResult('⚠️ 无法连接到服务器，请确保后端服务已启动 (http://localhost:3000)', true);
+            }
+        }
+
+        // 检查AI服务状态
+        async function checkAIStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/ai-status`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const status = data.data;
+                    const aiStatusDiv = document.getElementById('aiStatus');
+                    const aiStatusContent = document.getElementById('aiStatusContent');
+
+                    let statusHtml = `<p><strong>状态:</strong> ${status.message}</p>`;
+                    statusHtml += `<p><strong>提供商:</strong> ${status.provider.toUpperCase()}</p>`;
+                    statusHtml += `<p><strong>Excel数据:</strong> ${status.excelDataLoaded ? `已加载 (${status.excelSheets}个工作表)` : '未加载'}</p>`;
+                    statusHtml += `<p><strong>地址库:</strong> ${status.addressDatabaseLoaded ? '已加载' : '未加载'}</p>`;
+
+                    if (!status.hasApiKey) {
+                        statusHtml += `<div class="error" style="margin-top: 10px;">
+                            <strong>配置AI服务:</strong><br>
+                            1. 获取API密钥: <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a> 或 <a href="https://console.anthropic.com/" target="_blank">Claude</a><br>
+                            2. 在 .env 文件中添加: OPENAI_API_KEY=your_key<br>
+                            3. 重启服务
+                        </div>`;
+                    }
+
+                    aiStatusContent.innerHTML = statusHtml;
+                    aiStatusDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('检查AI状态失败:', error);
+            }
+        }
+        
+        // 页面加载时检查服务器状态
+        window.onload = function() {
+            checkServerStatus();
+            updateStats();
+        };
+        
+        // 回车键快捷提交
+        document.getElementById('chatInput').addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'Enter') {
+                getChatQuote();
+            }
+        });
+    </script>
+</body>
+</html>
