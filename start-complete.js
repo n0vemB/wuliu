@@ -299,16 +299,26 @@ function formatParseResult(parseResult) {
 function calculatePricing(parseResult) {
     const quotes = [];
     
-    // 基础报价逻辑
-    const basePrice = parseResult.customPrice || 18; // 默认18元/kg
-    const weight = parseResult.weight || 10;
-    const totalPrice = basePrice * weight;
+    // 获取实际重量和尺寸
+    const actualWeight = parseResult.weight || 10;
+    const dims = parseResult.dimensions || { length: 30, width: 20, height: 15 };
+    
+    // 计算体积重量
+    const volumeWeight = (dims.length * dims.width * dims.height) / 6000;
+    
+    // 计算计费重量（取实际重量和体积重量的较大值）
+    const chargeableWeight = Math.max(actualWeight, volumeWeight);
     
     // 计算围长
-    const dims = parseResult.dimensions || { length: 30, width: 20, height: 15 };
     const sortedDims = [dims.length, dims.width, dims.height].sort((a, b) => b - a);
     const girth = sortedDims[0] + (sortedDims[1] + sortedDims[2]) * 2;
     const isOversized = girth > 266;
+    
+    // 基础单价（自定义单价或默认价格）
+    const basePricePerKg = parseResult.customPrice || 18;
+    
+    // 基础运费（按计费重量计算）
+    const basePrice = basePricePerKg * chargeableWeight;
     
     // 计算附加费用
     let additionalFees = 0;
@@ -319,27 +329,31 @@ function calculatePricing(parseResult) {
         feeDetails.push(`超围长费(围长${girth}CM>266CM): ¥180`);
     }
     
-    if (weight > 22.5 && weight <= 40) {
+    // 超重费基于实际重量，不是计费重量
+    if (actualWeight > 22.5 && actualWeight <= 40) {
         additionalFees += 50;
         feeDetails.push(`超重费(22.5-40KG): ¥50`);
     }
     
-    const finalPrice = totalPrice + additionalFees;
+    const finalPrice = basePrice + additionalFees;
     
     // 生成报价
     quotes.push({
         channelName: '美国空派特快专线',
         serviceType: 'air',
         transitTime: '6-12天',
-        chargeableWeight: weight,
-        basePrice: totalPrice,
+        chargeableWeight: chargeableWeight,
+        actualWeight: actualWeight,
+        volumeWeight: volumeWeight,
+        basePrice: basePrice,
         additionalFees: additionalFees,
         totalPrice: finalPrice,
-        pricePerKg: basePrice / weight,
+        pricePerKg: basePricePerKg,
         isCustomPrice: !!parseResult.customPrice,
         feeDetails: feeDetails,
         destinationZone: '美东',
-        isOversized: isOversized
+        isOversized: isOversized,
+        girth: girth
     });
     
     return quotes;
@@ -352,7 +366,9 @@ function formatQuotes(quotes) {
         result += `${index + 1}. ${quote.channelName}\n`;
         result += `   🚛 运输方式: ✈️ ${quote.serviceType}\n`;
         result += `   ⏱️  运输时效: ${quote.transitTime}\n`;
-        result += `   ⚖️  计费重量: ${quote.chargeableWeight}kg\n`;
+        result += `   ⚖️  计费重量: ${quote.chargeableWeight.toFixed(6)}kg\n`;
+        result += `   📦 实际重量: ${quote.actualWeight}kg\n`;
+        result += `   📏 体积重量: ${quote.volumeWeight.toFixed(6)}kg\n`;
         result += `   💰 基础运费: ¥${quote.basePrice.toFixed(2)}（$${(quote.basePrice * 0.14).toFixed(2)}）${quote.isCustomPrice ? ' (自定义单价)' : ''}\n`;
         
         if (quote.additionalFees > 0) {
@@ -361,11 +377,21 @@ function formatQuotes(quotes) {
         }
         
         result += `   💵 总价: ¥${quote.totalPrice.toFixed(2)}（$${(quote.totalPrice * 0.14).toFixed(2)}）\n`;
-        result += `   📈 单价: ¥${quote.pricePerKg.toFixed(2)}/kg（$${(quote.pricePerKg * 0.14).toFixed(2)}/kg）\n`;
+        
+        // 显示单价（自定义单价或计算单价）
+        if (quote.isCustomPrice) {
+            result += `   📈 单价: ¥${quote.pricePerKg.toFixed(2)}/kg（$${(quote.pricePerKg * 0.14).toFixed(2)}/kg）\n`;
+        } else {
+            const calculatedPricePerKg = quote.totalPrice / quote.chargeableWeight;
+            result += `   📈 单价: ¥${calculatedPricePerKg.toFixed(2)}/kg（$${(calculatedPricePerKg * 0.14).toFixed(2)}/kg）\n`;
+        }
+        
         result += `   🎯 目的地分区: ${quote.destinationZone}\n`;
         
         if (quote.isOversized) {
-            result += `   ⚠️  围长状态: 超围\n`;
+            result += `   ⚠️  围长状态: 超围 (围长${quote.girth}CM>266CM)\n`;
+        } else {
+            result += `   ✅ 围长状态: 正常 (围长${quote.girth}CM≤266CM)\n`;
         }
         
         result += '\n';
