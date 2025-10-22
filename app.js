@@ -24,10 +24,18 @@ const aiService = new AIService();
 
 // 健康检查接口
 app.get('/health', (req, res) => {
-    res.json({ 
+    res.status(200).json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
         service: '国际物流报价系统'
+    });
+});
+
+// 根路径健康检查
+app.get('/', (req, res) => {
+    res.status(200).json({ 
+        status: 'ok',
+        message: '国际物流报价系统运行正常'
     });
 });
 
