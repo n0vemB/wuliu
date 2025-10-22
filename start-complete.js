@@ -397,9 +397,8 @@ function formatQuotes(quotes) {
             result += `   ⏱️  运输时效: ${quote.transitTime}\n`;
         }
         
-        result += `   ⚖️  计费重量: ${quote.chargeableWeight.toFixed(6)}kg\n`;
-        result += `   📦 实际重量: ${quote.actualWeight}kg\n`;
         result += `   📏 体积重量: ${quote.volumeWeight.toFixed(6)}kg\n`;
+        result += `   📦 实际重量: ${quote.actualWeight}kg\n`;
         result += `   💰 基础运费: ¥${quote.basePrice.toFixed(2)}（$${(quote.basePrice * 0.14).toFixed(2)}）${quote.isCustomPrice ? ' (自定义单价)' : ''}\n`;
         
         if (quote.additionalFees > 0) {
@@ -416,6 +415,10 @@ function formatQuotes(quotes) {
             const calculatedPricePerKg = quote.chargeableWeight > 0 ? quote.totalPrice / quote.chargeableWeight : 0;
             result += `   📈 单价: ¥${calculatedPricePerKg.toFixed(2)}/kg（$${(calculatedPricePerKg * 0.14).toFixed(2)}/kg）\n`;
         }
+        
+        // 添加合计显示（总价*4）
+        const totalAmount = quote.totalPrice * 4;
+        result += `   💵 合计：总价*4: ¥${totalAmount.toFixed(2)}（$${(totalAmount * 0.14).toFixed(2)}）\n`;
         
         result += `   🎯 目的地分区: ${quote.destinationZone}\n`;
         
