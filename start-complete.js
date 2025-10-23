@@ -202,19 +202,104 @@ function extractCountry(text) {
 }
 
 function extractCity(text) {
-    const cityMatch = text.match(/([A-Za-z\s]+),\s*[A-Z]{2}/);
-    if (cityMatch) {
-        return cityMatch[1].trim();
+    // 尝试匹配 "城市, 州" 格式
+    const cityStateMatch = text.match(/([A-Za-z\s]+),\s*([A-Z]{2})/);
+    if (cityStateMatch) {
+        return cityStateMatch[1].trim();
     }
-    return 'Miami'; // 默认城市
+    
+    // 尝试匹配 "城市 州" 格式
+    const cityStateMatch2 = text.match(/([A-Za-z\s]+)\s+([A-Z]{2})\s+\d{5}/);
+    if (cityStateMatch2) {
+        return cityStateMatch2[1].trim();
+    }
+    
+    // 尝试匹配常见的城市名称模式
+    const cityPatterns = [
+        /Mount Vernon/gi,
+        /New York/gi,
+        /Los Angeles/gi,
+        /Chicago/gi,
+        /Houston/gi,
+        /Phoenix/gi,
+        /Philadelphia/gi,
+        /San Antonio/gi,
+        /San Diego/gi,
+        /Dallas/gi,
+        /San Jose/gi,
+        /Austin/gi,
+        /Jacksonville/gi,
+        /Fort Worth/gi,
+        /Columbus/gi,
+        /Charlotte/gi,
+        /San Francisco/gi,
+        /Indianapolis/gi,
+        /Seattle/gi,
+        /Denver/gi,
+        /Washington/gi,
+        /Boston/gi,
+        /El Paso/gi,
+        /Nashville/gi,
+        /Detroit/gi,
+        /Oklahoma City/gi,
+        /Portland/gi,
+        /Las Vegas/gi,
+        /Memphis/gi,
+        /Louisville/gi,
+        /Baltimore/gi,
+        /Milwaukee/gi,
+        /Albuquerque/gi,
+        /Tucson/gi,
+        /Fresno/gi,
+        /Sacramento/gi,
+        /Mesa/gi,
+        /Kansas City/gi,
+        /Atlanta/gi,
+        /Long Beach/gi,
+        /Colorado Springs/gi,
+        /Raleigh/gi,
+        /Miami/gi,
+        /Virginia Beach/gi,
+        /Omaha/gi,
+        /Oakland/gi,
+        /Minneapolis/gi,
+        /Tulsa/gi,
+        /Arlington/gi,
+        /Tampa/gi,
+        /New Orleans/gi
+    ];
+    
+    for (const pattern of cityPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            return match[0].trim();
+        }
+    }
+    
+    // 如果没有找到城市，返回空字符串而不是默认值
+    return '';
 }
 
 function extractAddress(text) {
-    const addressMatch = text.match(/(\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd))/i);
-    if (addressMatch) {
-        return addressMatch[1].trim();
+    // 尝试匹配完整的街道地址
+    const addressPatterns = [
+        // 数字 + 街道名称 + 街道类型
+        /(\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Way|Court|Ct|Place|Pl))/i,
+        // 数字 + 街道名称（无类型）
+        /(\d+\s+[A-Za-z\s]{2,})/i,
+        // 街道名称 + 数字
+        /([A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Way|Court|Ct|Place|Pl)\s+\d+)/i
+    ];
+    
+    for (const pattern of addressPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            return match[1].trim();
+        }
     }
-    return '123 Main St'; // 默认地址
+    
+    // 如果没有找到地址，返回空字符串
+    return '';
 }
 
 function extractPostalCode(text) {
@@ -222,7 +307,61 @@ function extractPostalCode(text) {
     if (postalMatch) {
         return postalMatch[0];
     }
-    return '33166'; // 默认邮编
+    return ''; // 没有找到邮编时返回空字符串
+}
+
+// 根据邮编判断美国地区分区
+function getDestinationZone(postalCode, city) {
+    if (!postalCode) {
+        return '美东'; // 默认美东
+    }
+    
+    const zip = postalCode.substring(0, 5);
+    const firstDigit = zip.charAt(0);
+    
+    // 美东 (0-2开头)
+    if (['0', '1', '2'].includes(firstDigit)) {
+        return '美东';
+    }
+    // 美中 (3-6开头) 
+    else if (['3', '4', '5', '6'].includes(firstDigit)) {
+        return '美中';
+    }
+    // 美西 (7-9开头)
+    else if (['7', '8', '9'].includes(firstDigit)) {
+        return '美西';
+    }
+    
+    // 特殊情况：根据城市名称判断
+    if (city) {
+        const cityLower = city.toLowerCase();
+        
+        // 美西城市
+        if (cityLower.includes('los angeles') || cityLower.includes('san francisco') || 
+            cityLower.includes('seattle') || cityLower.includes('portland') || 
+            cityLower.includes('san diego') || cityLower.includes('las vegas') ||
+            cityLower.includes('phoenix') || cityLower.includes('denver')) {
+            return '美西';
+        }
+        
+        // 美中城市
+        if (cityLower.includes('chicago') || cityLower.includes('houston') || 
+            cityLower.includes('dallas') || cityLower.includes('austin') ||
+            cityLower.includes('kansas city') || cityLower.includes('denver') ||
+            cityLower.includes('minneapolis') || cityLower.includes('milwaukee')) {
+            return '美中';
+        }
+        
+        // 美东城市
+        if (cityLower.includes('new york') || cityLower.includes('miami') || 
+            cityLower.includes('atlanta') || cityLower.includes('boston') ||
+            cityLower.includes('philadelphia') || cityLower.includes('washington') ||
+            cityLower.includes('charlotte') || cityLower.includes('tampa')) {
+            return '美东';
+        }
+    }
+    
+    return '美东'; // 默认美东
 }
 
 function extractWeight(text) {
@@ -320,6 +459,9 @@ function calculatePricing(parseResult) {
     // 基础运费（按计费重量计算）
     const basePrice = basePricePerKg * chargeableWeight;
     
+    // 根据邮编和城市判断目的地分区
+    const destinationZone = getDestinationZone(parseResult.postalCode, parseResult.city);
+    
     // 计算附加费用
     let additionalFees = 0;
     let feeDetails = [];
@@ -353,7 +495,7 @@ function calculatePricing(parseResult) {
             pricePerKg: basePricePerKg,
             isCustomPrice: true,
             feeDetails: feeDetails,
-            destinationZone: '美东',
+            destinationZone: destinationZone,
             isOversized: isOversized,
             girth: girth
         });
@@ -372,7 +514,7 @@ function calculatePricing(parseResult) {
             pricePerKg: basePricePerKg,
             isCustomPrice: false,
             feeDetails: feeDetails,
-            destinationZone: '美东',
+            destinationZone: destinationZone,
             isOversized: isOversized,
             girth: girth
         });
